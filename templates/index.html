@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>CV Extractor App</title>
+    <title>AIO AIO CV Extractor App</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     
@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
     
     <style>
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .json-key { color: #A16545; font-weight: bold; }
         .json-string { color: #1d120c; }
@@ -21,14 +21,23 @@
         .json-number { color: #ff6d1f; }
         .json-boolean { color: #ff6d1f; font-weight: bold; }
         .json-null { color: #a16545; }
-        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; transform: translateY(20px); }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        
+        @keyframes fadeIn { 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
         /* Mobile Menu Animation */
         #mobile-menu { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
-        #mobile-menu.open { max-height: 200px; opacity: 1; }
+        #mobile-menu.open { max-height: 250px; opacity: 1; }
     </style>
     
     <script>
@@ -56,68 +65,192 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark min-h-screen flex flex-col overflow-x-hidden">
+<body class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark min-h-screen flex flex-col overflow-x-hidden selection:bg-primary/20">
 
-    <header class="flex flex-col border-b border-solid border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark z-50 sticky top-0 shadow-sm">
+    <header class="flex flex-col border-b border-solid border-border-light dark:border-border-dark bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm z-50 sticky top-0 shadow-sm transition-all duration-300">
         <div class="flex items-center justify-between px-4 sm:px-6 md:px-10 py-3">
-            <div class="flex items-center gap-4 cursor-pointer select-none" onclick="app.switchView('home')">
-                <div class="size-6 text-primary">
+            <div class="flex items-center gap-4 cursor-pointer select-none group" onclick="app.switchView('home')">
+                <div class="size-6 text-primary transition-transform group-hover:scale-110">
                     <span class="material-symbols-outlined text-3xl">layers</span>
                 </div>
-                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">CV Extractor</h2>
+                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">AIO AIO CV Extractor</h2>
             </div>
             
             <div class="hidden md:flex flex-1 justify-end gap-8">
-                <nav class="flex items-center gap-9">
-                    <button onclick="app.switchView('home')" class="text-sm font-medium leading-normal hover:text-primary transition-colors nav-link" data-target="home">Home</button>
-                    <button onclick="app.switchView('list')" class="text-sm font-medium leading-normal hover:text-primary transition-colors nav-link" data-target="list">Dashboard</button>
-                    <button onclick="app.switchView('output')" class="text-sm font-medium leading-normal hover:text-primary transition-colors nav-link" data-target="output">Outputs</button>
+                <nav class="flex items-center gap-2">
+                    <button onclick="app.switchView('home')" class="text-sm font-medium leading-normal px-4 py-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-all nav-link" data-target="home">Home</button>
+                    <button onclick="app.switchView('list')" class="text-sm font-medium leading-normal px-4 py-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-all nav-link" data-target="list">Dashboard</button>
+                    <button onclick="app.switchView('output')" class="text-sm font-medium leading-normal px-4 py-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-all nav-link" data-target="output">Outputs</button>
                 </nav>
             </div>
 
-            <button class="md:hidden text-text-light dark:text-text-dark focus:outline-none" onclick="app.toggleMobileMenu()">
+            <button class="md:hidden p-2 text-text-light dark:text-text-dark focus:outline-none hover:bg-black/5 rounded-lg transition-colors" onclick="app.toggleMobileMenu()">
                 <span class="material-symbols-outlined text-3xl">menu</span>
             </button>
         </div>
 
-        <div id="mobile-menu" class="md:hidden flex flex-col bg-secondary-light dark:bg-secondary-dark px-4 pb-4 shadow-inner">
-            <button onclick="app.switchView('home'); app.toggleMobileMenu()" class="text-left py-3 font-medium border-b border-black/5 dark:border-white/5 nav-link-mobile" data-target="home">Home</button>
-            <button onclick="app.switchView('list'); app.toggleMobileMenu()" class="text-left py-3 font-medium border-b border-black/5 dark:border-white/5 nav-link-mobile" data-target="list">Dashboard</button>
-            <button onclick="app.switchView('output'); app.toggleMobileMenu()" class="text-left py-3 font-medium nav-link-mobile" data-target="output">Outputs</button>
+        <div id="mobile-menu" class="md:hidden flex flex-col bg-secondary-light/50 dark:bg-secondary-dark/50 px-4 pb-4 backdrop-blur-md border-t border-black/5">
+            <button onclick="app.switchView('home'); app.toggleMobileMenu()" class="text-left py-4 font-medium border-b border-black/5 dark:border-white/5 nav-link-mobile active:text-primary transition-colors" data-target="home">Home</button>
+            <button onclick="app.switchView('list'); app.toggleMobileMenu()" class="text-left py-4 font-medium border-b border-black/5 dark:border-white/5 nav-link-mobile active:text-primary transition-colors" data-target="list">Dashboard</button>
+            <button onclick="app.switchView('output'); app.toggleMobileMenu()" class="text-left py-4 font-medium nav-link-mobile active:text-primary transition-colors" data-target="output">Outputs</button>
         </div>
     </header>
 
     <div id="app-container" class="flex-1 flex flex-col relative w-full max-w-full">
 
         <div id="view-home" class="view-section flex-1 flex flex-col">
-            <main class="flex flex-col gap-8 md:gap-20 py-8 md:py-20 flex-1 px-4 sm:px-6">
-                <section class="flex flex-col gap-6 text-center items-center">
-                    <div class="flex flex-col gap-3 animate-in fade-in zoom-in duration-500">
-                        <h1 class="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl tracking-tight">Instantly Extract CV Data</h1>
-                        <h2 class="text-base sm:text-lg font-normal text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto px-2">
-                            AI-powered parsing for PDF, DOCX, and Images. <br class="hidden sm:block">Bulk processing supported.
+            <main class="flex-col flex-1">
+                
+                <section class="flex flex-col gap-8 md:gap-16 py-12 md:py-24 px-4 sm:px-6 items-center text-center max-w-7xl mx-auto">
+                    <div class="flex flex-col gap-4 fade-in">
+                        <div class="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mx-auto mb-2 border border-primary/20">
+                            <span class="relative flex h-2 w-2">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </span>
+                            v2.0 Now Available
+                        </div>
+                        <h1 style="text-wrap: balance;" class="text-4xl font-black leading-tight sm:text-6xl tracking-tight max-w-4xl mx-auto drop-shadow-sm">
+                            Turn Chaos into <span class="text-primary">Structured Data</span>
+                        </h1>
+                        <h2 class="text-base sm:text-xl font-normal text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto leading-relaxed">
+                            The ultimate AI-powered parser. Upload PDFs, DOCX, or Images and get clean JSON/CSV instantly.
                         </h2>
                     </div>
-                    <div class="w-full max-w-3xl mt-4 px-2">
+                    
+                    <div class="w-full max-w-3xl mt-6 relative z-10 fade-in delay-100">
                         <input type="file" id="real-file-input" class="hidden" multiple onchange="app.handleFileSelect(event)">
                         
                         <div onclick="document.getElementById('real-file-input').click()" 
                             ondragover="app.handleDragOver(event)" 
                             ondrop="app.handleDrop(event)"
-                            class="group flex flex-col items-center gap-6 rounded-2xl border-2 border-dashed border-secondary-light dark:border-secondary-dark px-6 py-12 sm:py-20 bg-secondary-light/30 dark:bg-secondary-dark/30 hover:bg-secondary-light/60 dark:hover:bg-secondary-dark/50 hover:border-primary/50 transition-all cursor-pointer active:scale-[0.99]">
-                            <div class="flex flex-col items-center gap-2 pointer-events-none group-hover:-translate-y-1 transition-transform duration-300">
-                                <div class="p-4 bg-background-light dark:bg-background-dark rounded-full shadow-sm mb-2">
-                                    <span class="material-symbols-outlined text-4xl sm:text-5xl text-primary">cloud_upload</span>
+                            class="group flex flex-col items-center gap-6 rounded-3xl border-2 border-dashed border-secondary-light dark:border-secondary-dark px-6 py-16 bg-white/50 dark:bg-black/20 hover:bg-white/80 dark:hover:bg-white/5 hover:border-primary/50 transition-all cursor-pointer active:scale-[0.98] active:border-primary backdrop-blur-sm shadow-xl shadow-primary/5">
+                            <div class="flex flex-col items-center gap-2 pointer-events-none group-hover:-translate-y-2 transition-transform duration-300">
+                                <div class="p-5 bg-primary/10 rounded-full mb-2 group-hover:bg-primary/20 transition-colors">
+                                    <span class="material-symbols-outlined text-5xl text-primary">cloud_upload</span>
                                 </div>
-                                <p class="text-lg sm:text-xl font-bold">Drag & Drop CVs Here</p>
-                                <p class="text-xs sm:text-sm text-text-muted-light">Supports .pdf, .docx, .doc, .jpg, .png</p>
+                                <p class="text-xl font-bold">Drop CVs to Start</p>
+                                <p class="text-sm text-text-muted-light">Supports .pdf, .docx, .doc, .jpg, .png</p>
                             </div>
-                            <button class="rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-all pointer-events-none">
+                            <button class="rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-all pointer-events-none transform group-hover:scale-105">
                                 Browse Files
                             </button>
                         </div>
+                        <div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-primary/10 to-transparent blur-3xl opacity-50 pointer-events-none rounded-full"></div>
                     </div>
                 </section>
+
+                <section class="bg-white/60 dark:bg-black/20 py-16 md:py-24 px-4 border-y border-border-light dark:border-border-dark">
+                    <div class="max-w-7xl mx-auto">
+                         <div class="text-center mb-16 fade-in">
+                            <h3 class="text-3xl font-black mb-4">Why use AIO AIO CV Extractor?</h3>
+                            <p class="text-text-muted-light max-w-2xl mx-auto text-lg text-balance">Stop manual data entry. Our AI-powered engine turns unstructured resumes into structured data in seconds.</p>
+                         </div>
+                         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                             <div class="fade-in delay-100 p-8 rounded-2xl bg-background-light dark:bg-[#2a2a2a] border border-border-light dark:border-border-dark hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                                 <div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-6">
+                                     <span class="material-symbols-outlined text-3xl">psychology</span>
+                                 </div>
+                                 <h4 class="text-xl font-bold mb-3">AI Context Engine</h4>
+                                 <p class="text-text-muted-light">We don't just regex. Our advanced LLM understands context, separating "Project Manager" titles from project descriptions.</p>
+                             </div>
+                             
+                             <div class="fade-in delay-200 p-8 rounded-2xl bg-background-light dark:bg-[#2a2a2a] border border-border-light dark:border-border-dark hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                                 <div class="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center mb-6">
+                                     <span class="material-symbols-outlined text-3xl">library_books</span>
+                                 </div>
+                                 <h4 class="text-xl font-bold mb-3">Bulk Processing</h4>
+                                 <p class="text-text-muted-light">Drag and drop entire folders. Our queue system handles parallel processing so you can do 1 or 1,000 files.</p>
+                             </div>
+
+                             <div class="fade-in delay-300 p-8 rounded-2xl bg-background-light dark:bg-[#2a2a2a] border border-border-light dark:border-border-dark hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                                 <div class="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-6">
+                                     <span class="material-symbols-outlined text-3xl">fact_check</span>
+                                 </div>
+                                 <h4 class="text-xl font-bold mb-3">Smart Matching</h4>
+                                 <p class="text-text-muted-light">Paste a Job Description and we'll score every candidate against it automatically. Hire the best fit, faster.</p>
+                             </div>
+                         </div>
+                    </div>
+                </section>
+
+                <section class="py-16 md:py-24 px-4 max-w-7xl mx-auto">
+                    <div class="flex flex-col md:flex-row items-center gap-12 md:gap-24">
+                        <div class="flex-1 space-y-8 fade-in">
+                            <h3 class="text-3xl md:text-4xl font-black">How it Works</h3>
+                            
+                            <div class="flex gap-4 group">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-md group-hover:scale-110 transition-transform">1</div>
+                                    <div class="w-0.5 h-full bg-border-light dark:bg-border-dark my-2 group-hover:bg-primary/50 transition-colors"></div>
+                                </div>
+                                <div class="pb-8">
+                                    <h4 class="text-xl font-bold mb-2">Upload Documents</h4>
+                                    <p class="text-text-muted-light">Drag & Drop your candidate files. We support PDF, Word, and even Images.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-4 group">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-md group-hover:scale-110 transition-transform">2</div>
+                                    <div class="w-0.5 h-full bg-border-light dark:bg-border-dark my-2 group-hover:bg-primary/50 transition-colors"></div>
+                                </div>
+                                <div class="pb-8">
+                                    <h4 class="text-xl font-bold mb-2">AI Analysis</h4>
+                                    <p class="text-text-muted-light">Our engine reads the files, extracting Name, Email, Skills, Experience, and Education.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-4 group">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-md group-hover:scale-110 transition-transform">3</div>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold mb-2">Export & Match</h4>
+                                    <p class="text-text-muted-light">Download as CSV/JSON or use our built-in Job Matcher to score candidates.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 bg-secondary-light dark:bg-[#333] p-6 rounded-2xl md:rotate-3 rotate-0 my-8 md:my-0 shadow-2xl border border-border-light dark:border-border-dark hover:rotate-0 transition-all duration-500 fade-in delay-200">
+                            <div class="flex gap-2 mb-4">
+                                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                            </div>
+                            <pre class="font-mono text-xs sm:text-sm text-text-light dark:text-text-dark overflow-hidden">
+{
+  <span class="text-primary">"name"</span>: "Jane Doe",
+  <span class="text-primary">"skills"</span>: [
+    "Python", "TensorFlow", "React"
+  ],
+  <span class="text-primary">"experience"</span>: {
+    "role": "Senior Engineer",
+    "years": 5
+  },
+  <span class="text-green-600 font-bold">"match_score"</span>: 94
+}</pre>
+                        </div>
+                    </div>
+                </section>
+                
+                <footer class="bg-secondary-light dark:bg-[#1a1a1a] py-12 px-6 border-t border-border-light dark:border-border-dark mt-auto">
+                    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-8 text-sm text-text-muted-light">
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-center gap-2 text-primary">
+                                <span class="material-symbols-outlined text-2xl">layers</span>
+                                <span class="font-bold text-lg text-text-light dark:text-text-dark">AIO AIO CV Extractor</span>
+                            </div>
+                            <p>© 2024 AIO AIO CV Extractor. All rights reserved.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-x-8 gap-y-4">
+                            <a href="#" class="hover:text-primary transition-colors">Privacy Policy</a>
+                            <a href="#" class="hover:text-primary transition-colors">Terms of Service</a>
+                            <a href="#" class="hover:text-primary transition-colors">Contact Support</a>
+                        </div>
+                    </div>
+                </footer>
+
             </main>
         </div>
 
@@ -203,7 +336,7 @@
                         Job Matcher
                     </h3>
                     <textarea id="jd-input" rows="3" placeholder="Paste Job Description here (e.g. 'Looking for Python Developer with AWS experience')..." 
-                        class="w-full p-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none text-sm sm:text-base transition-shadow"></textarea>
+                        class="w-full p-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none text-base transition-shadow"></textarea>
                     <div class="flex justify-end mt-3">
                         <button onclick="app.scoreResumes()" class="w-full sm:w-auto bg-primary text-white px-6 py-2 rounded-lg font-bold hover:opacity-90 transition active:scale-95 shadow-md shadow-primary/20">
                             Score Candidates
@@ -222,10 +355,10 @@
                             <span class="material-symbols-outlined text-lg">content_copy</span> <span class="hidden sm:inline">Copy JSON</span>
                         </button>
                         <button onclick="app.downloadCsv()" class="flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold hover:bg-green-700 active:scale-95 transition-all">
-                            <span class="material-symbols-outlined text-lg">table_view</span> <span class="hidden sm:inline">CSV</span>
+                            <span class="material-symbols-outlined text-lg">table_view</span> CSV
                         </button>
                         <button onclick="app.downloadJson()" class="flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all">
-                            <span class="material-symbols-outlined text-lg">data_object</span> <span class="hidden sm:inline">JSON</span>
+                            <span class="material-symbols-outlined text-lg">data_object</span> JSON
                         </button>
                         <button onclick="app.startOver()" class="flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg h-10 px-4 border border-border-light text-text-light text-sm font-bold hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all">
                             Start Over
@@ -272,10 +405,11 @@
                 document.querySelectorAll('.nav-link, .nav-link-mobile').forEach(el => {
                     if (el.dataset.target === viewName) {
                         el.classList.add('text-primary');
-                        if(el.classList.contains('nav-link-mobile')) el.classList.add('bg-black/5', 'dark:bg-white/5');
+                        el.classList.add('bg-black/5', 'dark:bg-white/10');
+                        if(el.classList.contains('nav-link-mobile')) el.classList.add('text-primary');
                     } else {
                         el.classList.remove('text-primary');
-                        if(el.classList.contains('nav-link-mobile')) el.classList.remove('bg-black/5', 'dark:bg-white/5');
+                        el.classList.remove('bg-black/5', 'dark:bg-white/10');
                     }
                 });
             },
@@ -285,7 +419,7 @@
                 menu.classList.toggle('open');
             },
 
-            // --- FUNCTIONALITY (Restored from Original File) ---
+            // --- REAL BACKEND LOGIC RESTORED ---
             
             scoreResumes: async () => {
                 const jdText = document.getElementById('jd-input').value;
@@ -476,6 +610,7 @@
                         const formData = new FormData();
                         formData.append('file', fileObj.file);
                         
+                        // RESTORED: Real Upload Call
                         const uploadRes = await fetch('/upload', { method: 'POST', body: formData });
                         const uploadData = await uploadRes.json();
                         
@@ -497,6 +632,7 @@
                 
                 const interval = setInterval(async () => {
                     try {
+                        // RESTORED: Real Polling Call
                         const res = await fetch(`/status/${taskId}`);
                         const data = await res.json();
                         
@@ -576,7 +712,7 @@
 
                 displayJson.forEach(file => {
                     const meta = file.data.metadata;
-                    if (meta && meta.match_score !== undefined && meta.match_score > 0) {
+                    if (meta && meta.match_score !== undefined) {
                         hasScores = true;
                         const score = meta.match_score;
                         
