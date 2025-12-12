@@ -4,6 +4,7 @@ import sys
 import os
 import signal
 
+os.makedirs('uploads', exist_ok=True)
 # Define processes globally so we can kill them on exit
 procs = []
 
