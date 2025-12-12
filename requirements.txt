@@ -1,0 +1,9 @@
+flask
+celery
+redis
+gunicorn
+python-docx
+pdfplumber
+google-generativeai
+pillow
+python-dotenv

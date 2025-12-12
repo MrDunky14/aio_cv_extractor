@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>CV Extractor App</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .json-key { color: #A16545; font-weight: bold; }
+        .json-string { color: #1d120c; }
+        .dark .json-string { color: #fcf9f8; }
+        .json-number { color: #ff6d1f; }
+        .json-boolean { color: #ff6d1f; font-weight: bold; }
+        .json-null { color: #a16545; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+    
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ff6d1f",
+              "background-light": "#FAF3E1",
+              "background-dark": "#222222",
+              "secondary-light": "#F5E7C6",
+              "secondary-dark": "#3a3a3a",
+              "text-light": "#222222",
+              "text-dark": "#FAF3E1",
+              "text-muted-light": "#666666",
+              "text-muted-dark": "#aaaaaa",
+              "border-light": "#EADDCD",
+              "border-dark": "#4f4f4f",
+            },
+            fontFamily: { "display": ["Inter", "sans-serif"] },
+          },
+        },
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark min-h-screen flex flex-col overflow-x-hidden">
+
+    <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark px-4 sm:px-6 md:px-10 py-3 bg-background-light dark:bg-background-dark z-50">
+        <div class="flex items-center gap-4 cursor-pointer" onclick="app.switchView('home')">
+            <div class="size-6 text-primary">
+                <span class="material-symbols-outlined text-3xl">layers</span>
+            </div>
+            <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">CV Extractor</h2>
+        </div>
+        <div class="hidden md:flex flex-1 justify-end gap-8">
+            <nav class="flex items-center gap-9">
+                <button onclick="app.switchView('home')" class="text-sm font-medium leading-normal hover:text-primary nav-link" data-target="home">Home</button>
+                <button onclick="app.switchView('list')" class="text-sm font-medium leading-normal hover:text-primary nav-link" data-target="list">Dashboard</button>
+                <button onclick="app.switchView('output')" class="text-sm font-medium leading-normal hover:text-primary nav-link" data-target="output">Outputs</button>
+            </nav>
+        </div>
+    </header>
+
+    <div id="app-container" class="flex-1 flex flex-col relative">
+
+        <div id="view-home" class="view-section flex-1 flex flex-col">
+            <main class="flex flex-col gap-12 md:gap-20 py-12 md:py-20 flex-1 px-4">
+                <section class="flex flex-col gap-6 text-center items-center">
+                    <div class="flex flex-col gap-2">
+                        <h1 class="text-4xl font-black leading-tight sm:text-5xl">Instantly Extract CV Data</h1>
+                        <h2 class="text-base font-normal text-text-muted-light dark:text-text-muted-dark max-w-2xl mx-auto">
+                            AI-powered parsing for PDF, DOCX, and Images. Bulk processing supported.
+                        </h2>
+                    </div>
+                    <div class="w-full max-w-3xl mt-4">
+                        <input type="file" id="real-file-input" class="hidden" multiple onchange="app.handleFileSelect(event)">
+                        
+                        <div onclick="document.getElementById('real-file-input').click()" 
+                            ondragover="app.handleDragOver(event)" 
+                            ondrop="app.handleDrop(event)"
+                            class="flex flex-col items-center gap-6 rounded-xl border-2 border-dashed border-secondary-light dark:border-secondary-dark px-6 py-14 bg-secondary-light/30 dark:bg-secondary-dark/30 hover:bg-secondary-light/50 transition-colors cursor-pointer">
+                            <div class="flex flex-col items-center gap-2 pointer-events-none">
+                                <span class="material-symbols-outlined text-5xl text-primary">upload_file</span>
+                                <p class="text-lg font-bold">Drag & Drop CVs Here</p>
+                                <p class="text-sm text-text-muted-light">Supports .pdf, .docx, .doc, .jpg, .png</p>
+                            </div>
+                            <button class="rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold pointer-events-none">
+                                Browse Files
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <div id="view-list" class="view-section hidden flex-1 flex flex-col justify-center py-8 px-4 sm:px-10 lg:px-20">
+            <div class="layout-content-container flex flex-col w-full max-w-5xl mx-auto flex-1 gap-6 fade-in">
+                <div class="flex flex-wrap justify-between gap-4">
+                    <div class="flex min-w-72 flex-col gap-2">
+                        <p class="text-4xl font-black tracking-tighter">Manage Uploads</p>
+                        <p class="text-text-muted-light text-base">Select files to process.</p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row justify-between gap-4 rounded-lg bg-secondary-light dark:bg-secondary-dark p-3">
+                    <div class="flex items-center gap-2">
+                        <label class="flex items-center gap-2 px-2 py-1 cursor-pointer">
+                            <input id="select-all-checkbox" onchange="app.toggleSelectAll()" type="checkbox" class="h-5 w-5 rounded border-border-light text-primary focus:ring-0"/>
+                            <span class="text-sm font-medium">Select All</span>
+                        </label>
+                        <button onclick="app.deleteSelected()" class="p-2 rounded-md hover:bg-primary/20 transition-colors">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                    <button id="process-btn" onclick="app.startProcessing()" class="flex items-center justify-center rounded-lg h-10 bg-primary text-white gap-2 text-sm font-bold px-4 hover:opacity-90 transition-opacity disabled:opacity-50">
+                        <span class="material-symbols-outlined text-lg">workspaces</span>
+                        <span id="process-btn-text">Process Files</span>
+                    </button>
+                </div>
+
+                <div class="flex-1">
+                    <div class="flex overflow-hidden rounded-lg border border-border-light bg-secondary-light/50">
+                        <table class="w-full text-left">
+                            <thead class="bg-secondary-light">
+                                <tr>
+                                    <th class="px-4 py-3 w-12"></th>
+                                    <th class="px-4 py-3 text-sm font-medium">File Name</th>
+                                    <th class="px-4 py-3 text-sm font-medium hidden md:table-cell">Size</th>
+                                    <th class="px-4 py-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="file-list-body" class="divide-y divide-border-light"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <p id="selection-count" class="text-text-muted-light text-sm px-2">0 files selected</p>
+            </div>
+        </div>
+
+        <div id="view-progress" class="view-section hidden flex-1 flex flex-col justify-start py-8 px-4 sm:px-10 lg:px-20">
+            <div class="layout-content-container flex flex-col w-full max-w-5xl mx-auto flex-1 gap-6 fade-in">
+                <div class="flex flex-col gap-8 rounded-xl bg-secondary-light/50 p-6 sm:p-8 shadow-sm">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div class="flex flex-col gap-2">
+                            <h1 class="text-3xl font-black">Processing...</h1>
+                            <p class="text-base text-text-muted-light">Analyzing resumes with AI. Please wait.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-baseline justify-between gap-6">
+                            <p class="text-base font-medium">Batch Progress</p>
+                            <p id="progress-percentage-text" class="text-3xl font-bold text-primary">0%</p>
+                        </div>
+                        <div class="h-3 w-full overflow-hidden rounded-full bg-black/10">
+                            <div id="progress-bar-fill" class="h-3 rounded-full bg-primary transition-all duration-300" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="h-px w-full bg-text-light/10"></div>
+                    <h3 class="text-lg font-bold">Details</h3>
+                    <div id="progress-list-container" class="flex flex-col gap-2 max-h-[400px] overflow-y-auto no-scrollbar"></div>
+                </div>
+            </div>
+        </div>
+        <div id="jd-matcher-box" class="hidden w-full max-w-[960px] mx-auto mb-6 p-6 bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm fade-in">
+            <h3 class="text-xl font-bold flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-primary">fact_check</span> 
+                Job Matcher
+            </h3>
+            <textarea id="jd-input" rows="3" placeholder="Paste Job Description here (e.g. 'Looking for Python Developer with AWS experience')..." 
+                class="w-full p-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-black/20 focus:ring-2 focus:ring-primary outline-none"></textarea>
+            <div class="flex justify-end mt-3">
+                <button onclick="app.scoreResumes()" class="bg-primary text-white px-6 py-2 rounded-lg font-bold hover:opacity-90 transition">
+                    Score Candidates
+                </button>
+            </div>
+        </div>
+        <div id="view-output" class="view-section hidden flex-1 flex flex-col py-10 px-4 sm:px-10 lg:px-40">
+             <div class="flex flex-wrap justify-between items-start gap-4 p-4 max-w-[960px] w-full mx-auto fade-in">
+                <div class="flex flex-col gap-2">
+                <div id="score-card-container" class="hidden flex flex-wrap gap-4 justify-center mb-8 fade-in w-full max-w-[960px] mx-auto">
+                    </div>
+                    <h1 class="text-4xl font-black">Extracted Data</h1>
+                    <p class="text-base text-text-muted-light">Results from your latest batch.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="app.copyJson()" class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:opacity-90">
+                        <span class="material-symbols-outlined">content_copy</span> Copy JSON
+                    </button>
+                    <button onclick="app.downloadCsv()" class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors">
+                        <span class="material-symbols-outlined">table_view</span> CSV
+                    </button>
+                    
+                    <button onclick="app.downloadJson()" class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors">
+                        <span class="material-symbols-outlined">data_object</span> JSON
+                    </button>
+                    
+                    <button onclick="app.startOver()" class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 border border-border-light text-text-light text-sm font-bold hover:bg-black/5 transition-colors">
+                        Start Over
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex flex-1 px-4 py-3 justify-center w-full">
+                <div class="flex flex-col flex-1 max-w-[960px]">
+                    <div class="flex w-full min-w-0 flex-1 overflow-auto rounded-xl border border-border-light bg-secondary-light p-6 text-sm h-[600px]">
+                        <pre id="json-output-display" class="whitespace-pre-wrap break-words font-mono text-sm w-full"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const app = {
+            files: [],      // Stores {id, fileObject, status, result}
+            selectedIds: [],
+            completedCount: 0,
+            
+            // --- Navigation ---
+            switchView: (viewName) => {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`view-${viewName}`).classList.remove('hidden');
+                
+                document.querySelectorAll('.nav-link').forEach(el => {
+                    if (el.dataset.target === viewName) el.classList.add('text-primary');
+                    else el.classList.remove('text-primary');
+                });
+                document.getElementById('jd-matcher-box').classList.toggle('hidden', viewName !== 'output');
+            },
+
+            scoreResumes: async () => {
+                const jdText = document.getElementById('jd-input').value;
+                if (!jdText) return alert("Paste a JD first!");
+                if (!app.currentOutput) return alert("No resumes!");
+
+                const currentData = JSON.parse(app.currentOutput);
+                
+                try {
+                    const response = await fetch('/match-jd', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ resumes: currentData, jd_text: jdText })
+                    });
+                    const scoredData = await response.json();
+                    
+                    // Update Internal Data
+                    app.files.forEach((f, i) => { if(scoredData[i]) f.result = scoredData[i].data; });
+                    
+                    // Re-render
+                    app.renderOutput(scoredData);
+                    alert("Scoring Complete!");
+                } catch (e) { alert("Error: " + e); }
+            },
+
+            // --- File Selection ---
+            handleFileSelect: (event) => {
+                const newFiles = Array.from(event.target.files);
+                app.addFiles(newFiles);
+            },
+            
+            handleDragOver: (event) => { event.preventDefault(); },
+            handleDrop: (event) => {
+                event.preventDefault();
+                const newFiles = Array.from(event.dataTransfer.files);
+                app.addFiles(newFiles);
+            },
+
+            addFiles: (fileList) => {
+                const validExtensions = ['pdf', 'docx', 'doc', 'jpg', 'png', 'jpeg'];
+                
+                fileList.forEach(file => {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    const isValid = validExtensions.includes(ext);
+                    
+                    const fileObj = {
+                        id: Date.now() + Math.random(),
+                        file: file,
+                        name: file.name,
+                        size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+                        isValid: isValid,
+                        status: 'pending',
+                        result: null
+                    };
+                    
+                    app.files.push(fileObj);
+                    if (isValid) app.selectedIds.push(fileObj.id);
+                });
+                
+                app.renderFileList();
+                app.switchView('list');
+            },
+
+            // --- List Management ---
+            renderFileList: () => {
+                const tbody = document.getElementById('file-list-body');
+                tbody.innerHTML = '';
+
+                if (app.files.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-text-muted-light">No files uploaded.</td></tr>';
+                } else {
+                    app.files.forEach(file => {
+                        const isSelected = app.selectedIds.includes(file.id);
+                        const row = document.createElement('tr');
+                        
+                        // Row styling based on validity
+                        if (!file.isValid) {
+                             row.className = 'bg-red-50 opacity-75';
+                             row.innerHTML = `
+                                <td class="px-4 py-3 w-12 text-center"><span class="material-symbols-outlined text-red-500">error</span></td>
+                                <td class="px-4 py-3 text-sm font-medium text-red-600">${file.name} (Invalid Type)</td>
+                                <td class="px-4 py-3 text-sm text-red-400 hidden md:table-cell">${file.size}</td>
+                                <td class="px-4 py-3 text-right"><button onclick="app.deleteFile(${file.id})" class="text-red-500"><span class="material-symbols-outlined">delete</span></button></td>
+                             `;
+                        } else {
+                            row.className = 'hover:bg-black/5 transition-colors';
+                            row.innerHTML = `
+                                <td class="px-4 py-3 w-12 text-center">
+                                    <input type="checkbox" onchange="app.toggleSelection(${file.id})" ${isSelected ? 'checked' : ''} class="h-5 w-5 rounded border-border-light text-primary focus:ring-0"/>
+                                </td>
+                                <td class="px-4 py-3 text-sm font-medium flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary text-xl">description</span>
+                                    ${file.name}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-text-muted-light hidden md:table-cell">${file.size}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <button onclick="app.deleteFile(${file.id})" class="hover:bg-primary/20 p-2 rounded"><span class="material-symbols-outlined">delete</span></button>
+                                </td>
+                            `;
+                        }
+                        tbody.appendChild(row);
+                    });
+                }
+                
+                const validCount = app.files.filter(f => f.isValid).length;
+                document.getElementById('selection-count').innerText = `${app.selectedIds.length} of ${validCount} valid files selected`;
+                document.getElementById('process-btn-text').innerText = `Process ${app.selectedIds.length} Files`;
+                document.getElementById('process-btn').disabled = app.selectedIds.length === 0;
+            },
+
+            toggleSelection: (id) => {
+                if (app.selectedIds.includes(id)) app.selectedIds = app.selectedIds.filter(sid => sid !== id);
+                else app.selectedIds.push(id);
+                app.renderFileList();
+            },
+            
+            toggleSelectAll: () => {
+                const masterCheck = document.getElementById('select-all-checkbox');
+                if (masterCheck.checked) app.selectedIds = app.files.filter(f => f.isValid).map(f => f.id);
+                else app.selectedIds = [];
+                app.renderFileList();
+            },
+
+            deleteFile: (id) => {
+                app.files = app.files.filter(f => f.id !== id);
+                app.selectedIds = app.selectedIds.filter(sid => sid !== id);
+                app.renderFileList();
+            },
+            
+            deleteSelected: () => {
+                app.files = app.files.filter(f => !app.selectedIds.includes(f.id));
+                app.selectedIds = [];
+                app.renderFileList();
+            },
+
+            // --- REAL PROCESSING LOGIC ---
+            startProcessing: async () => {
+                app.switchView('progress');
+                app.completedCount = 0;
+                
+                // Set up UI for progress
+                const statusList = document.getElementById('progress-list-container');
+                statusList.innerHTML = '';
+                
+                const filesToProcess = app.files.filter(f => app.selectedIds.includes(f.id));
+                
+                // Create initial UI cards
+                filesToProcess.forEach(f => {
+                    const item = document.createElement('div');
+                    item.id = `status-item-${f.id}`;
+                    item.className = 'flex min-h-[72px] items-center justify-between gap-4 rounded-lg bg-background-light p-4 border border-border-light';
+                    item.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <div class="icon-box flex size-12 shrink-0 items-center justify-center rounded-lg bg-black/5 text-text-muted-light">
+                                <span class="material-symbols-outlined">hourglass_top</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <p class="font-medium">${f.name}</p>
+                                <p class="status-text text-sm opacity-70">Queued...</p>
+                            </div>
+                        </div>
+                    `;
+                    statusList.appendChild(item);
+                });
+
+                // --- MAIN LOOP: Upload & Poll for each file ---
+                for (const fileObj of filesToProcess) {
+                    // 1. Update UI to "Uploading"
+                    app.updateStatusUI(fileObj.id, 'uploading', 'Uploading...');
+                    
+                    try {
+                        // 2. Upload File to Backend
+                        const formData = new FormData();
+                        formData.append('file', fileObj.file);
+                        
+                        const uploadRes = await fetch('/upload', { method: 'POST', body: formData });
+                        const uploadData = await uploadRes.json();
+                        
+                        if (uploadData.task_id) {
+                            // 3. Start Polling
+                            app.pollTask(fileObj.id, uploadData.task_id, filesToProcess.length);
+                        } else {
+                            app.updateStatusUI(fileObj.id, 'error', 'Upload Failed');
+                            app.markComplete(filesToProcess.length);
+                        }
+                    } catch (e) {
+                        app.updateStatusUI(fileObj.id, 'error', 'Network Error');
+                        app.markComplete(filesToProcess.length);
+                    }
+                }
+            },
+
+            pollTask: (fileId, taskId, totalFiles) => {
+                app.updateStatusUI(fileId, 'processing', 'AI Extracting...');
+                
+                const interval = setInterval(async () => {
+                    try {
+                        const res = await fetch(`/status/${taskId}`);
+                        const data = await res.json();
+                        
+                        if (data.state === 'SUCCESS') {
+                            clearInterval(interval);
+                            // Store result
+                            const fIndex = app.files.findIndex(f => f.id === fileId);
+                            if(fIndex > -1) app.files[fIndex].result = data.result;
+                            
+                            app.updateStatusUI(fileId, 'success', 'Completed');
+                            app.markComplete(totalFiles);
+                        } else if (data.state === 'FAILURE') {
+                            clearInterval(interval);
+                            app.updateStatusUI(fileId, 'error', 'Extraction Failed');
+                            app.markComplete(totalFiles);
+                        }
+                    } catch (e) {
+                        // Keep retrying on network blip, or implement retry limit
+                    }
+                }, 2000); // Check every 2s
+            },
+
+            updateStatusUI: (id, type, text) => {
+                const item = document.getElementById(`status-item-${id}`);
+                if(!item) return;
+                
+                const iconBox = item.querySelector('.icon-box');
+                const statusText = item.querySelector('.status-text');
+                statusText.innerText = text;
+                
+                if (type === 'processing') {
+                    iconBox.className = 'icon-box flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary';
+                    iconBox.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
+                } else if (type === 'success') {
+                    iconBox.className = 'icon-box flex size-12 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-600';
+                    iconBox.innerHTML = '<span class="material-symbols-outlined">check_circle</span>';
+                } else if (type === 'error') {
+                    iconBox.className = 'icon-box flex size-12 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600';
+                    iconBox.innerHTML = '<span class="material-symbols-outlined">error</span>';
+                }
+            },
+
+            markComplete: (total) => {
+                app.completedCount++;
+                const percentage = Math.round((app.completedCount / total) * 100);
+                
+                document.getElementById('progress-percentage-text').innerText = `${percentage}%`;
+                document.getElementById('progress-bar-fill').style.width = `${percentage}%`;
+                
+                if (app.completedCount === total) {
+                    setTimeout(() => {
+                        app.renderOutput();
+                        app.switchView('output');
+                    }, 1000);
+                }
+            },
+
+            // --- Output Rendering ---
+            renderOutput: (overrideData = null) => {
+                const display = document.getElementById('json-output-display');
+                const scoreContainer = document.getElementById('score-card-container');
+                
+                let finalJson;
+                if (overrideData) {
+                    finalJson = overrideData;
+                } else {
+                    const processedFiles = app.files.filter(f => app.selectedIds.includes(f.id) && f.result);
+                    finalJson = processedFiles.map(f => ({ file_name: f.name, data: f.result }));
+                }
+
+                // --- NEW: Score Card Logic ---
+                scoreContainer.innerHTML = ''; // Clear previous scores
+                let hasScores = false;
+
+                // Deep clone to avoid modifying the original data (we want to hide score from JSON view)
+                const displayJson = JSON.parse(JSON.stringify(finalJson));
+
+                displayJson.forEach(file => {
+                    const meta = file.data.metadata;
+                    if (meta && meta.match_score !== undefined && meta.match_score > 0) {
+                        hasScores = true;
+                        const score = meta.match_score;
+                        
+                        // Create a Badge
+                        const badge = document.createElement('div');
+                        badge.className = "flex flex-col items-center p-6 bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-md w-48 transition-transform hover:scale-105";
+                        
+                        // Color coding
+                        let colorClass = "text-red-500";
+                        if (score > 75) colorClass = "text-green-500";
+                        else if (score > 40) colorClass = "text-yellow-500";
+
+                        badge.innerHTML = `
+                            <span class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2 truncate w-full text-center" title="${file.file_name}">${file.file_name}</span>
+                            <span class="text-5xl font-black ${colorClass} mb-1">${score}%</span>
+                            <span class="text-sm font-medium text-zinc-400">Match Score</span>
+                        `;
+                        scoreContainer.appendChild(badge);
+
+                        // DELETE from display JSON so it doesn't clutter the text box
+                        delete file.data.metadata.match_score;
+                    }
+                });
+
+                // Show/Hide container based on if we actually calculated scores
+                if (hasScores) {
+                    scoreContainer.classList.remove('hidden');
+                    scoreContainer.classList.add('flex');
+                } else {
+                    scoreContainer.classList.add('hidden');
+                    scoreContainer.classList.remove('flex');
+                }
+                // -----------------------------
+
+                // --- TRIGGER CHART (Keep existing) ---
+                if(app.renderChart) app.renderChart(finalJson); 
+
+                // Render JSON (Without the score!)
+                const jsonStr = JSON.stringify(displayJson, null, 2);
+                
+                // Syntax Highlight Logic (Keep your existing one)
+                const highlighted = jsonStr
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+                        let cls = 'json-number';
+                        if (/^"/.test(match)) {
+                            if (/:$/.test(match)) cls = 'json-key';
+                            else cls = 'json-string';
+                        } else if (/true|false/.test(match)) cls = 'json-boolean';
+                        else if (/null/.test(match)) cls = 'json-null';
+                        return `<span class="${cls}">${match}</span>`;
+                    });
+                    
+                display.innerHTML = highlighted;
+                app.currentOutput = JSON.stringify(finalJson); // Keep full data (with score) for download if user clicks CSV
+            },
+
+            copyJson: () => {
+                if (!app.currentOutput) return;
+                navigator.clipboard.writeText(app.currentOutput);
+                alert('JSON copied to clipboard!');
+            },
+
+            downloadJson: () => {
+                            if (!app.currentOutput) return;
+                            const blob = new Blob([app.currentOutput], { type: 'application/json' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = "resumes_extracted.json";
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        },
+
+            downloadCsv: async () => {
+                if (!app.currentOutput) return;
+                
+                try {
+                    // Parse the current JSON string back to an object
+                    const jsonData = JSON.parse(app.currentOutput);
+                    
+                    const response = await fetch('/download-csv', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(jsonData)
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = "resumes_export.csv";
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        alert("Failed to generate CSV. Server Error.");
+                    }
+                } catch (e) {
+                    alert("Error exporting CSV: " + e);
+                }
+            },            
+
+            startOver: () => {
+                app.files = [];
+                app.selectedIds = [];
+                app.switchView('home');
+            }
+            
+        };
+        // Add this inside the 'app' object or run it on window load
+        window.addEventListener('load', async () => {
+            // 1. Reset the UI
+            app.startOver(); 
+            
+            // 2. Tell Backend to wipe files
+            try {
+                await fetch('/reset', { method: 'POST' });
+                console.log("Session reset: Uploads cleared.");
+            } catch (e) {
+                console.log("Warning: Could not reset session.");
+            }
+        });
+        // Initialize
+        app.switchView('home');
+    </script>
+    <script>
+        function renderChart(skillsData) {
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            
+            // Example: Mocking "Match" vs "Missing" counts for visualization
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Matching Skills', 'Missing Skills'],
+                    datasets: [{
+                        data: [skillsData.matching_skills.length, skillsData.missing_skills.length],
+                        backgroundColor: ['#36A2EB', '#FF6384']
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+    </script>
+</body>
+</html>
